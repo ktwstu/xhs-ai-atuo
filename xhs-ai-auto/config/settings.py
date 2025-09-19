@@ -21,8 +21,8 @@ IMAGEN_MODEL_NAME = os.getenv("IMAGEN_MODEL_NAME", "imagen-4.0-fast-generate-001
 # === ModelScope API-Inference Configuration (new) ===
 # 2000 free API calls per day
 MODELSCOPE_API_KEY = os.getenv("MODELSCOPE_API_KEY")
-MS_TEXT_MODEL = os.getenv("MS_TEXT_MODEL", "Qwen/Qwen3-235B-A22B-Instruct")
-MS_IMAGE_MODEL = os.getenv("MS_IMAGE_MODEL", "qwen/Qwen-Image")
+MS_TEXT_MODEL = os.getenv("MS_TEXT_MODEL", "Qwen/Qwen2.5-Coder-32B-Instruct")
+MS_IMAGE_MODEL = os.getenv("MS_IMAGE_MODEL", "Qwen/Qwen-Image")  # Use FLUX for image generation
 MS_ENABLE_THINKING = os.getenv("MS_ENABLE_THINKING", "false").lower() == "true"
 
 # === DashScope/Alibaba Cloud Configuration (new) ===

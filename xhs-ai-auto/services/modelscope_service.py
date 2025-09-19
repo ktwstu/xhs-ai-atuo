@@ -7,6 +7,7 @@ import os
 import json
 import re
 import requests
+import time
 from typing import Dict, List, Optional
 from datetime import datetime
 from io import BytesIO
@@ -33,8 +34,10 @@ class ModelScopeAIService(AIService):
                 base_url='https://api-inference.modelscope.cn/v1/',
                 api_key=self.api_key,
             )
+            print(f"[DEBUG] ModelScope API Key configured: {self.api_key[:10]}...")
         else:
             self.client = None
+            print("[WARNING] ModelScope API Key not found")
 
     def is_available(self) -> bool:
         """Check if ModelScope service is properly configured."""
@@ -122,7 +125,8 @@ class ModelScopeAIService(AIService):
 
     def generate_images(self, text_content: str, save_dir: str, num_images: int = 1) -> List[str]:
         """
-        Generate images using Qwen-Image model via ModelScope API.
+        Generate images using ModelScope API-Inference with async mode.
+        Supports FLUX, Stable Diffusion, and other AIGC models.
 
         Args:
             text_content: Text description for image generation
@@ -143,53 +147,136 @@ class ModelScopeAIService(AIService):
             image_prompt = self._generate_image_prompt(text_content)
             print(f"[INFO] Image prompt: {image_prompt[:100]}...")
 
-            # Prepare API request
+            model_to_use = self.image_model
+            if "qwen-image" in model_to_use.lower():
+                print("[INFO] Correcting model name to 'Qwen/Qwen-Image' for API call")
+                model_to_use = "Qwen/Qwen-Image"
+
+            base_url = 'https://api-inference.modelscope.cn/'
             headers = {
-                'Authorization': f'Bearer {self.api_key}',
-                'Content-Type': 'application/json'
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "X-ModelScope-Async-Mode": "true"  # Enable async mode
             }
 
-            # Construct request payload
+            # Step 1: Submit image generation task
+            print(f"[INFO] Submitting image generation task with model: {model_to_use}")
+
             payload = {
-                'model': self.image_model,
-                'input': {
-                    'prompt': image_prompt,
-                    'n': num_images,
-                    'size': '1024x1024'
-                }
+                "model": model_to_use,
+                "prompt": image_prompt
             }
 
-            # Call API
-            api_url = f'https://api-inference.modelscope.cn/api/v1/models/{self.image_model}/generate'
-            response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+            response = requests.post(
+                f"{base_url}v1/images/generations",
+                headers=headers,
+                data=json.dumps(payload, ensure_ascii=False).encode('utf-8'),
+                timeout=30
+            )
 
-            if response.status_code == 200:
-                result = response.json()
-                print(f"[INFO] Image generation successful")
-
-                # Save images from response
-                saved_paths = []
-                if 'images' in result:
-                    for i, img_data in enumerate(result['images']):
-                        path = self._save_image(img_data, save_dir, i)
-                        if path:
-                            saved_paths.append(path)
-                elif 'output' in result and 'images' in result['output']:
-                    # Alternative response format
-                    for i, img_url in enumerate(result['output']['images']):
-                        path = self._download_and_save_image(img_url, save_dir, i)
-                        if path:
-                            saved_paths.append(path)
-
-                return saved_paths
-            else:
-                print(f"[ERROR] Image generation failed: {response.status_code}")
+            if response.status_code != 200:
+                print(f"[ERROR] Failed to submit task: {response.status_code}")
                 print(f"[ERROR] Response: {response.text[:500]}")
                 return []
 
+            task_id = response.json().get("task_id")
+            if not task_id:
+                print("[ERROR] No task_id returned from API")
+                return []
+
+            print(f"[INFO] Task submitted successfully, task_id: {task_id}")
+
+            # Step 2: Poll for task completion
+            max_attempts = 60  # Wait up to 2 minutes
+            poll_interval = 2  # Check every 2 seconds
+
+            for attempt in range(max_attempts):
+                time.sleep(poll_interval)
+
+                result_response = requests.get(
+                    f"{base_url}v1/tasks/{task_id}",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "X-ModelScope-Task-Type": "image_generation"
+                    },
+                    timeout=10
+                )
+
+                if result_response.status_code != 200:
+                    print(f"[WARNING] Failed to check task status: {result_response.status_code}")
+                    continue
+
+                data = result_response.json()
+                task_status = data.get("task_status")
+
+                print(f"[INFO] Task status: {task_status} (attempt {attempt + 1}/{max_attempts})")
+
+                if task_status == "SUCCEED":
+                    # Download and save images
+                    output_images = data.get("output_images", [])
+                    if not output_images:
+                        print("[ERROR] No images in response")
+                        return []
+
+                    saved_paths = []
+                    for i, img_url in enumerate(output_images[:num_images]):
+                        print(f"[INFO] Downloading image {i+1} from: {img_url[:50]}...")
+
+                        try:
+                            img_response = requests.get(img_url, timeout=30)
+                            if img_response.status_code == 200:
+                                img = Image.open(BytesIO(img_response.content))
+
+                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                filename = os.path.join(save_dir, f"modelscope_image_{timestamp}_{i+1}.png")
+                                img.save(filename)
+
+                                saved_paths.append(os.path.abspath(filename))
+                                print(f"[SUCCESS] Image saved to: {filename}")
+                            else:
+                                print(f"[ERROR] Failed to download image: {img_response.status_code}")
+                        except Exception as e:
+                            print(f"[ERROR] Error downloading image {i+1}: {e}")
+
+                    if saved_paths:
+                        return saved_paths
+                    else:
+                        return []
+
+                elif task_status == "FAILED":
+                    error_msg = data.get("error", "Unknown error")
+                    print(f"[ERROR] Task failed: {error_msg}")
+                    return []
+
+                elif task_status not in ["PENDING", "RUNNING"]:
+                    print(f"[WARNING] Unknown task status: {task_status}")
+
+            print("[ERROR] Timeout waiting for image generation")
+            return self._fallback_to_placeholder(image_prompt, save_dir, num_images)
+
         except Exception as e:
             print(f"[ERROR] ModelScope image generation error: {e}")
-            return []
+            return self._fallback_to_placeholder(image_prompt, save_dir, num_images)
+
+
+    def _save_base64_image(self, b64_data: str, save_dir: str, index: int) -> Optional[str]:
+        """Save base64 encoded image."""
+        try:
+            import base64
+
+            img_bytes = base64.b64decode(b64_data)
+            img = Image.open(BytesIO(img_bytes))
+
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = os.path.join(save_dir, f"modelscope_image_{timestamp}_{index+1}.png")
+            img.save(filename)
+
+            print(f"[SUCCESS] Image saved to: {filename}")
+            return os.path.abspath(filename)
+
+        except Exception as e:
+            print(f"[ERROR] Failed to save base64 image: {e}")
+            return None
 
     def _parse_json_response(self, response_text: str) -> Dict:
         """Parse JSON from model response."""

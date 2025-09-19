@@ -30,7 +30,7 @@ def get_ai_service() -> AIService:
             print("[WARNING] Google service not available, trying fallback...")
             provider = "modelscope"  # Fallback to ModelScope
 
-    if provider == "modelscope":
+    elif provider == "modelscope":
         from services.modelscope_service import ModelScopeAIService
         service = ModelScopeAIService()
         if service.is_available():
@@ -39,7 +39,7 @@ def get_ai_service() -> AIService:
             print("[WARNING] ModelScope service not available, trying DashScope...")
             provider = "dashscope"  # Fallback to DashScope
 
-    if provider == "dashscope":
+    elif provider == "dashscope":
         from services.dashscope_service import DashScopeAIService
         service = DashScopeAIService()
         if service.is_available():
