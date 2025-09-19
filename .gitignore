@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environment variables
+.env
+*.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project specific
+data/
+cookies.json
+*.log
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+cache/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# xiaohongshu-mcp specific
+xiaohongshu-mcp/xiaohongshu-login-windows-amd64.exe
+xiaohongshu-mcp/xiaohongshu-mcp-windows-amd64.exe
+xiaohongshu-mcp/cookies.json
+C:\Users\*\AppData\Local\Temp\cookies.json
+
+# Claude
+.claude/
