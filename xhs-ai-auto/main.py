@@ -1,8 +1,9 @@
 import os
 import json
 from datetime import datetime
-from services.llm_service import generate_text_content, generate_images
+from services.service_factory import get_ai_service, get_available_services
 from services.publish_service import publish_note
+from config import settings
 
 def create_storage_folder(base_path: str, topic: str) -> str:
     """
@@ -33,6 +34,21 @@ def main():
     The main workflow for the xhs-ai-auto assistant.
     """
     print("--- Welcome to the XHS AI Auto Assistant ---")
+    print(f"[INFO] Using AI Provider: {settings.AI_PROVIDER.upper()}")
+
+    # Initialize AI service
+    try:
+        ai_service = get_ai_service()
+        print(f"[INFO] Successfully initialized {ai_service.get_service_name()} service")
+    except ValueError as e:
+        print(f"[ERROR] Failed to initialize AI service: {e}")
+        available = get_available_services()
+        if available:
+            print(f"[INFO] Available services: {', '.join(available)}")
+            print("[INFO] Please check your .env configuration")
+        else:
+            print("[ERROR] No AI services are available. Please configure at least one service.")
+        return
 
     # 1. Get user input for the note topic
     topic = input("Please enter the topic for your Xiaohongshu note: ")
@@ -44,8 +60,8 @@ def main():
     storage_path = create_storage_folder("data", topic)
 
     # 3. Generate text content
-    print("\\nStep 1: Generating text content...")
-    text_content = generate_text_content(topic)
+    print("\nStep 1: Generating text content...")
+    text_content = ai_service.generate_text_content(topic)
     if not text_content:
         print("Failed to generate text content. Aborting.")
         return
@@ -53,8 +69,8 @@ def main():
     save_content_locally(storage_path, text_content) # Archive the text content
 
     # 4. Generate images and save them directly to the storage path
-    print("\\nStep 2: Generating images...")
-    local_image_paths = generate_images(
+    print("\nStep 2: Generating images...")
+    local_image_paths = ai_service.generate_images(
         text_content=text_content['content'],
         save_dir=storage_path, # Provide the directory to save images
         num_images=1

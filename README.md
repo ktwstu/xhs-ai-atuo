@@ -1,12 +1,16 @@
 # XHS Auto - 小红书自动化发布系统
 
-一个基于AI的小红书内容自动生成和发布系统，集成了Google Gemini文本生成、Google Imagen图像生成和xiaohongshu-mcp自动发布功能。
+一个基于AI的小红书内容自动生成和发布系统，支持多个AI提供商（Google、ModelScope、DashScope），实现文本和图像的智能生成及自动发布。
 
 ## 功能特点
 
-- 🤖 **AI文本生成**：使用Google Gemini API自动生成小红书风格的标题、内容和标签
-- 🎨 **AI图像生成**：使用Google Imagen API根据内容自动生成配图
+- 🤖 **多AI提供商支持**：
+  - Google (Gemini + Imagen)
+  - ModelScope API-Inference (2000次/天免费额度)
+  - DashScope/阿里云百炼 (通义千问 + 通义万相)
+- 🎨 **智能图像生成**：根据内容自动生成高质量配图
 - 📤 **自动发布**：通过xiaohongshu-mcp服务自动发布到小红书平台
+- 🔄 **灵活切换**：通过配置文件轻松切换不同的AI服务
 - 📝 **完整工作流**：从主题输入到发布完成的一站式解决方案
 
 ## 项目结构
@@ -18,8 +22,12 @@ xhs-auto/
 │   ├── config/              # 配置模块
 │   │   └── settings.py      # 配置文件
 │   └── services/            # 服务模块
-│       ├── llm_service.py   # AI生成服务
-│       └── publish_service.py # 发布服务
+│       ├── ai_service.py    # AI服务抽象接口
+│       ├── google_service.py # Google AI实现
+│       ├── modelscope_service.py # ModelScope实现
+│       ├── dashscope_service.py  # DashScope实现
+│       ├── service_factory.py    # 服务工厂
+│       └── publish_service.py    # 发布服务
 ├── xiaohongshu-mcp/         # MCP服务（子模块）
 ├── data/                    # 生成内容存储
 ├── venv/                    # Python虚拟环境
@@ -32,7 +40,10 @@ xhs-auto/
 
 - Python 3.8+
 - Go 1.19+（用于xiaohongshu-mcp）
-- Google Cloud API密钥（Gemini和Imagen）
+- AI服务密钥（至少配置一个）：
+  - Google Cloud API密钥（Gemini和Imagen）
+  - 或 ModelScope API Token（免费2000次/天）
+  - 或 DashScope/阿里云百炼 API密钥
 
 ### 1. 克隆项目
 
@@ -59,12 +70,24 @@ pip install -r requirements.txt
 创建`.env`文件并添加以下配置：
 
 ```env
-# Google AI配置
+# === AI Provider Selection ===
+# 选择要使用的AI提供商: google, modelscope, dashscope
+AI_PROVIDER=google
+
+# === Google AI配置（如果使用Google） ===
 GEMINI_API_KEY=your_gemini_api_key
 IMAGEN_API_KEY=your_imagen_api_key
-GEMINI_MODEL_NAME=gemini-1.5-flash
-IMAGEN_MODEL_NAME=imagen-4.0-fast-generate-001
+
+# === ModelScope配置（如果使用ModelScope） ===
+# 免费2000次/天，获取Token: https://modelscope.cn/my/myaccesstoken
+MODELSCOPE_API_KEY=your_modelscope_token
+
+# === DashScope配置（如果使用阿里云百炼） ===
+# 获取密钥: https://dashscope.console.aliyun.com/apiKey
+DASHSCOPE_API_KEY=your_dashscope_api_key
 ```
+
+完整配置示例请参考`.env.example`文件。
 
 ### 4. 设置xiaohongshu-mcp
 
@@ -113,6 +136,20 @@ python xhs-ai-auto/main.py
 2. 生成配图
 3. 发布到小红书
 
+## AI提供商对比
+
+| 提供商 | 文本生成模型 | 图像生成模型 | 免费额度 | 特点 |
+|--------|-------------|-------------|----------|------|
+| **Google** | Gemini-1.5-flash | Imagen-4.0 | 有限免费 | 稳定性高，图像质量好 |
+| **ModelScope** | Qwen3-235B | Qwen-Image | 2000次/天 | 完全免费，深度思考模式 |
+| **DashScope** | 通义千问-Plus | 通义万相/Qwen-Image | 100万tokens起 | 企业级稳定，中文优化 |
+
+### 选择建议
+
+- **开发测试**：使用ModelScope（每天2000次免费）
+- **生产环境**：使用DashScope（稳定可靠）
+- **国际用户**：使用Google（全球服务）
+
 ## 注意事项
 
 ### Windows Defender问题
@@ -138,6 +175,8 @@ python xhs-ai-auto/main.py
 
 - [xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp) - 小红书MCP服务
 - [Google Generative AI](https://github.com/googleapis/python-genai) - Google AI SDK
+- [ModelScope](https://modelscope.cn) - 魔搭社区AI模型平台
+- [DashScope](https://dashscope.aliyun.com) - 阿里云百炼平台
 
 ## License
 

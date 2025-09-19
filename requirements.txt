@@ -23,3 +23,9 @@ typing-inspection==0.4.1
 typing_extensions==4.15.0
 urllib3==2.5.0
 websockets==15.0.1
+
+# ModelScope dependencies (optional)
+openai>=1.0.0  # For ModelScope API-Inference
+
+# DashScope dependencies (optional)
+dashscope>=1.14.0  # For Alibaba Cloud Model Studio
