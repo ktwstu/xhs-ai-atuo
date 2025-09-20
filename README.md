@@ -5,8 +5,8 @@
 ## 功能特点
 
 - 🤖 **多AI提供商支持**：
-  - Google (Gemini + Imagen)-ok
-  - ModelScope API-Inference (2000次/天免费额度)-ok
+  - Google (Gemini + Imagen)-ok	（main）
+  - ModelScope API-Inference (2000次/天免费额度)-ok	分支（branch：feature/modelscope-api）
   - DashScope/阿里云百炼 (通义千问 + 通义万相)--没测试
 - 🎨 **智能图像生成**：根据内容自动生成高质量配图
 - 📤 **自动发布**：通过xiaohongshu-mcp服务自动发布到小红书平台
