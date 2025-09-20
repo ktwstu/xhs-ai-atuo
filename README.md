@@ -5,8 +5,8 @@
 ## 功能特点
 
 - 🤖 **多AI提供商支持**：
-  - Google (Gemini + Imagen)-ok	（main）
-  - ModelScope API-Inference (2000次/天免费额度)-ok	分支（branch：feature/modelscope-api）
+  - Google (Gemini + Imagen)-ok	
+  - ModelScope API-Inference (2000次/天免费额度)-ok	
   - DashScope/阿里云百炼 (通义千问 + 通义万相)--没测试
 - 🎨 **智能图像生成**：根据内容自动生成高质量配图
 - 📤 **自动发布**：通过xiaohongshu-mcp服务自动发布到小红书平台
@@ -39,7 +39,7 @@ xhs-auto/
 ### 前置要求
 
 - Python 3.8+
-- Go 1.19+（用于xiaohongshu-mcp，）
+- Go 1.19+（用于xiaohongshu-mcp，直接下载exe可以不安装go）
 - AI服务密钥（至少配置一个）：
   - Google Cloud API密钥（Gemini和Imagen）
   - 或 ModelScope API Token（总共免费2000次/天）
@@ -48,7 +48,7 @@ xhs-auto/
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/yourusername/xhs-auto.git
+git clone https://github.com/ktwstu/xhs-ai-atuo.git
 cd xhs-auto
 ```
 
@@ -135,6 +135,9 @@ python xhs-ai-auto/main.py
 1. 生成文本内容
 2. 生成配图
 3. 发布到小红书
+# 测试
+<img src="./data/e01.png" alt="示例1" width="800">
+<img src="./data/e02.png" alt="示例2" width="800">
 
 ## AI提供商对比
 
@@ -142,11 +145,11 @@ python xhs-ai-auto/main.py
 |--------|-------------|-------------|----------|------|
 | **Google** | Gemini-1.5-flash | Imagen-4.0 | 第一层级可用 | 稳定性高，图像质量好 |
 | **ModelScope** | Qwen3-235B | Qwen-Image | 500次/天 | 完全免费，深度思考模式，不怎么好用 |
-| **DashScope** | 通义千问-Plus | 通义万相/Qwen-Image | 100万tokens起 | 企业级稳定，中文优化 |
+| **DashScope** | 通义千问-Plus | 通义万相/Qwen-Image | 100万tokens起 | 企业级稳定，中文优化，懒得测试所以没测试 |
 
 ### 选择建议
 
-- **开发测试**：使用ModelScope（每天2000次免费）
+- **开发测试**：使用ModelScope（每天2000次免费，单个模型最多500，以官方为准）
 - **生产环境**：使用DashScope（稳定可靠）
 - **国际用户**：使用Google（全球服务）
 
@@ -189,3 +192,4 @@ MIT License
 ## 联系方式
 
 如有问题，请提交Issue或联系项目维护者。
+微信：ktws007
