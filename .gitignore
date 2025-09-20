@@ -29,6 +29,7 @@ build/
 
 cookies.json
 *.log
+xhs-ai-auto/data/
 *.jpg
 *.jpeg
 *.gif
