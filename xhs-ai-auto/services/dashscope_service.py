@@ -73,13 +73,15 @@ class DashScopeAIService(AIService):
 {
   "title": "吸引眼球的标题（最多20字）",
   "content": "详细内容（300-500字，包含emoji，实用性强）",
-  "tags": ["标签1", "标签2", "标签3"]
+  "tags": ["标签1", "标签2", "标签3"],
+  "image_prompt": "图片生成提示词（50-150字，描述场景、风格、色调、构图）"
 }
 
 要求：
 1. 标题要吸引人，使用数字、emoji等元素
 2. 内容要分段，使用emoji装饰，提供实用价值
-3. 标签要精准，3-5个相关标签"""
+3. 标签要精准，3-5个相关标签
+4. image_prompt要详细描述视觉元素，包括场景、风格、色调等"""
 
             messages = [
                 {"role": "system", "content": system_message},
@@ -107,7 +109,7 @@ class DashScopeAIService(AIService):
             print(f"[ERROR] DashScope text generation error: {e}")
             return {}
 
-    def generate_images(self, text_content: str, save_dir: str, num_images: int = 1) -> List[str]:
+    def generate_images(self, text_content: str, save_dir: str, num_images: int = 1, image_prompt: Optional[str] = None) -> List[str]:
         """
         Generate images using Tongyi Wanxiang or Qwen-Image model.
 
@@ -125,19 +127,23 @@ class DashScopeAIService(AIService):
         try:
             print(f"[INFO] Generating images with model: {self.image_model}")
 
-            # Generate optimized image prompt
-            image_prompt = self._generate_image_prompt(text_content)
-            print(f"[INFO] Image prompt: {image_prompt[:100]}...")
+            # Use provided image_prompt if available, otherwise generate one
+            if image_prompt:
+                final_prompt = image_prompt
+                print(f"[INFO] Using provided image prompt: {final_prompt[:100]}...")
+            else:
+                final_prompt = self._generate_image_prompt(text_content)
+                print(f"[INFO] Generated image prompt: {final_prompt[:100]}...")
 
             saved_paths = []
 
             # Check which model to use
             if self.image_model == "qwen-image":
                 # Use new Qwen-Image model
-                saved_paths = self._generate_with_qwen_image(image_prompt, save_dir, num_images)
+                saved_paths = self._generate_with_qwen_image(final_prompt, save_dir, num_images)
             else:
                 # Use traditional Wanxiang model
-                saved_paths = self._generate_with_wanxiang(image_prompt, save_dir, num_images)
+                saved_paths = self._generate_with_wanxiang(final_prompt, save_dir, num_images)
 
             return saved_paths
 

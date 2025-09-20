@@ -23,11 +23,12 @@ class AIService(ABC):
                 - title: The note title (max 20 characters)
                 - content: The main content
                 - tags: List of relevant tags
+                - image_prompt: (Optional) Optimized prompt for image generation
         """
         pass
 
     @abstractmethod
-    def generate_images(self, text_content: str, save_dir: str, num_images: int = 1) -> List[str]:
+    def generate_images(self, text_content: str, save_dir: str, num_images: int = 1, image_prompt: Optional[str] = None) -> List[str]:
         """
         Generate images based on text content.
 
@@ -35,6 +36,7 @@ class AIService(ABC):
             text_content: Text description for image generation
             save_dir: Directory to save generated images
             num_images: Number of images to generate (default: 1)
+            image_prompt: (Optional) Specific prompt for image generation
 
         Returns:
             List of absolute paths to saved images

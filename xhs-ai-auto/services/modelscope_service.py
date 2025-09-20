@@ -78,16 +78,18 @@ class ModelScopeAIService(AIService):
             # System prompt for Xiaohongshu content
             system_prompt = """你是一个专业的小红书内容创作助手。
 你需要根据用户提供的主题，生成符合小红书风格的内容。
-输出必须是一个有效的JSON对象，包含以下三个键：
+输出必须是一个有效的JSON对象，包含以下四个键：
 1. "title": 标题（最多20个字，吸引眼球）
 2. "content": 正文内容（300-500字，包含emoji，分段清晰，实用性强）
 3. "tags": 标签列表（3-5个相关标签）
+4. "image_prompt": 图片生成提示词（50-150字，描述场景、风格、色调、构图等视觉元素）
 
 示例输出：
 {
   "title": "周末宅家也能瘦！懒人减脂秘籍✨",
   "content": "姐妹们！谁说减肥一定要去健身房？今天分享我的懒人减脂法～\n\n🌟 早餐这样吃\n...",
-  "tags": ["减脂", "懒人瘦身", "宅家运动", "健康生活"]
+  "tags": ["减脂", "懒人瘦身", "宅家运动", "健康生活"],
+  "image_prompt": "明亮温馨的家居场景，展示健康早餐和运动瑜伽垫，暖色调，自然光线，ins风格摄影"
 }"""
 
             # Call API with thinking mode support
@@ -115,7 +117,11 @@ class ModelScopeAIService(AIService):
 
             # Extract and parse response
             content = response.choices[0].message.content
-            print(f"[DEBUG] Raw response: {content[:200]}...")
+            # Use repr() to safely print content that may contain unicode characters
+            try:
+                print(f"[DEBUG] Raw response: {content[:200]}...")
+            except:
+                print(f"[DEBUG] Raw response: {repr(content[:200])}...")
 
             return self._parse_json_response(content)
 
@@ -123,7 +129,7 @@ class ModelScopeAIService(AIService):
             print(f"[ERROR] ModelScope text generation failed: {e}")
             return {}
 
-    def generate_images(self, text_content: str, save_dir: str, num_images: int = 1) -> List[str]:
+    def generate_images(self, text_content: str, save_dir: str, num_images: int = 1, image_prompt: Optional[str] = None) -> List[str]:
         """
         Generate images using ModelScope API-Inference with async mode.
         Supports FLUX, Stable Diffusion, and other AIGC models.
@@ -143,9 +149,13 @@ class ModelScopeAIService(AIService):
         try:
             print(f"[INFO] Generating images with model: {self.image_model}")
 
-            # Generate optimized image prompt
-            image_prompt = self._generate_image_prompt(text_content)
-            print(f"[INFO] Image prompt: {image_prompt[:100]}...")
+            # Use provided image_prompt if available, otherwise generate one
+            if image_prompt:
+                final_prompt = image_prompt
+                print(f"[INFO] Using provided image prompt: {final_prompt[:100]}...")
+            else:
+                final_prompt = self._generate_image_prompt(text_content)
+                print(f"[INFO] Generated image prompt: {final_prompt[:100]}...")
 
             model_to_use = self.image_model
             if "qwen-image" in model_to_use.lower():
@@ -164,7 +174,7 @@ class ModelScopeAIService(AIService):
 
             payload = {
                 "model": model_to_use,
-                "prompt": image_prompt
+                "prompt": final_prompt
             }
 
             response = requests.post(
@@ -248,7 +258,7 @@ class ModelScopeAIService(AIService):
                     print(f"[ERROR] Task failed: {error_msg}")
                     return []
 
-                elif task_status not in ["PENDING", "RUNNING"]:
+                elif task_status not in ["PENDING", "RUNNING", "PROCESSING"]:
                     print(f"[WARNING] Unknown task status: {task_status}")
 
             print("[ERROR] Timeout waiting for image generation")

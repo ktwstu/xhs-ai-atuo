@@ -70,10 +70,13 @@ def main():
 
     # 4. Generate images and save them directly to the storage path
     print("\nStep 2: Generating images...")
+    # Use image_prompt if available, otherwise fall back to content
+    image_prompt = text_content.get('image_prompt')
     local_image_paths = ai_service.generate_images(
         text_content=text_content['content'],
         save_dir=storage_path, # Provide the directory to save images
-        num_images=1
+        num_images=1,
+        image_prompt=image_prompt  # Pass the specialized image prompt if available
     )
     if not local_image_paths:
         print("Failed to generate images. Aborting.")

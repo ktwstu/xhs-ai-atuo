@@ -61,14 +61,21 @@ class GoogleAIService(AIService):
             You are a helpful assistant that strictly follows instructions. Your task is to generate content for a Xiaohongshu note.
             Your output MUST be a single, valid JSON object and nothing else. Do not include any text before or after the JSON object, such as markdown formatting.
 
-            The JSON object must contain exactly these three keys: "title", "content", and "tags".
+            The JSON object must contain exactly these four keys: "title", "content", "tags", and "image_prompt".
 
             Here is an example of the required output format:
             {{
               "title": "Example Title",
               "content": "This is an example note content with emojis ✨.",
-              "tags": ["example", "demo"]
+              "tags": ["example", "demo"],
+              "image_prompt": "A bright and warm home scene showcasing healthy lifestyle, soft natural lighting, minimalist style photography"
             }}
+
+            Requirements for each field:
+            - title: Catchy title (max 20 characters)
+            - content: Main content (300-500 characters, include emojis, practical)
+            - tags: List of 3-5 relevant tags
+            - image_prompt: Detailed visual description for image generation (50-150 characters, describe scene, style, colors, composition)
 
             Now, generate the content for the following topic.
 
@@ -91,6 +98,7 @@ class GoogleAIService(AIService):
             if all(k in content for k in ['title', 'content', 'tags']):
                 # Ensure title is within limit
                 content['title'] = content['title'][:20]
+                # image_prompt is optional, so we don't require it
                 return content
             else:
                 print("[ERROR] Response missing required keys")
@@ -100,7 +108,7 @@ class GoogleAIService(AIService):
             print(f"[ERROR] Gemini text generation failed: {e}")
             return {}
 
-    def generate_images(self, text_content: str, save_dir: str, num_images: int = 1) -> List[str]:
+    def generate_images(self, text_content: str, save_dir: str, num_images: int = 1, image_prompt: Optional[str] = None) -> List[str]:
         """
         Generate images using Google Imagen API.
 
@@ -120,14 +128,18 @@ class GoogleAIService(AIService):
             print(f"[INFO] Using Imagen model: {self.imagen_model}")
             client = genai.Client(api_key=self.imagen_api_key)
 
-            # Generate optimized image prompt
-            image_prompt = self._generate_image_prompt_with_gemini(text_content)
-            print(f"[INFO] Optimized image prompt: {image_prompt[:100]}...")
+            # Use provided image_prompt if available, otherwise use Gemini to generate one
+            if image_prompt:
+                final_prompt = image_prompt
+                print(f"[INFO] Using provided image prompt: {final_prompt[:100]}...")
+            else:
+                final_prompt = self._generate_image_prompt_with_gemini(text_content)
+                print(f"[INFO] Optimized image prompt: {final_prompt[:100]}...")
 
             print(f"[INFO] Generating {num_images} image(s)...")
             response = client.models.generate_images(
                 model=self.imagen_model,
-                prompt=image_prompt,
+                prompt=final_prompt,
                 config=types.GenerateImagesConfig(number_of_images=num_images)
             )
 
