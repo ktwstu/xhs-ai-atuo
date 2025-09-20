@@ -136,8 +136,8 @@ python xhs-ai-auto/main.py
 2. 生成配图
 3. 发布到小红书
 # 测试
-<img src="./data/e01.png" alt="示例1" width="800">
-<img src="./data/e02.png" alt="示例2" width="800">
+<img src="./xhs-ai-auto/e01.png" alt="示例1" width="800">
+<img src="./xhs-ai-auto/e02.png" alt="示例2" width="800">
 
 ## AI提供商对比
 
