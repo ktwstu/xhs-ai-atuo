@@ -137,7 +137,7 @@ python xhs-ai-auto/main.py
 3. 发布到小红书
 # 测试
 <img src="./xhs-ai-auto/e01.png" alt="示例1" width="800">
-<img src="./xhs-ai-auto/e02.png" alt="示例2" width="800">
+<img src="./xhs-ai-auto/e02.PNG" alt="示例2" width="800">
 
 ## AI提供商对比
 

@@ -29,7 +29,6 @@ build/
 
 cookies.json
 *.log
-*.png
 *.jpg
 *.jpeg
 *.gif
