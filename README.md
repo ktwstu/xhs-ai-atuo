@@ -1,13 +1,13 @@
-# XHS Auto - 小红书自动化发布系统
+# XHS-ai-auto - 小红书自动化发布系统
 
 一个基于AI的小红书内容自动生成和发布系统，支持多个AI提供商（Google、ModelScope、DashScope），实现文本和图像的智能生成及自动发布。
 
 ## 功能特点
 
 - 🤖 **多AI提供商支持**：
-  - Google (Gemini + Imagen)
-  - ModelScope API-Inference (2000次/天免费额度)
-  - DashScope/阿里云百炼 (通义千问 + 通义万相)
+  - Google (Gemini + Imagen)-ok
+  - ModelScope API-Inference (2000次/天免费额度)-ok
+  - DashScope/阿里云百炼 (通义千问 + 通义万相)--没测试
 - 🎨 **智能图像生成**：根据内容自动生成高质量配图
 - 📤 **自动发布**：通过xiaohongshu-mcp服务自动发布到小红书平台
 - 🔄 **灵活切换**：通过配置文件轻松切换不同的AI服务
@@ -39,10 +39,10 @@ xhs-auto/
 ### 前置要求
 
 - Python 3.8+
-- Go 1.19+（用于xiaohongshu-mcp）
+- Go 1.19+（用于xiaohongshu-mcp，）
 - AI服务密钥（至少配置一个）：
   - Google Cloud API密钥（Gemini和Imagen）
-  - 或 ModelScope API Token（免费2000次/天）
+  - 或 ModelScope API Token（总共免费2000次/天）
   - 或 DashScope/阿里云百炼 API密钥
 
 ### 1. 克隆项目
@@ -87,7 +87,7 @@ MODELSCOPE_API_KEY=your_modelscope_token
 DASHSCOPE_API_KEY=your_dashscope_api_key
 ```
 
-完整配置示例请参考`.env.example`文件。
+完整配置示例请参考`.env.example`文件（复制到xhs-ai-auto/.env）。
 
 ### 4. 设置xiaohongshu-mcp
 
@@ -103,7 +103,7 @@ cd xiaohongshu-mcp
 # - xiaohongshu-mcp-windows-amd64.exe
 ```
 
-## 使用方法
+## 使用方法(可自行查看xiaohongshu-mcp)
 
 ### 1. 首次登录小红书
 
@@ -140,8 +140,8 @@ python xhs-ai-auto/main.py
 
 | 提供商 | 文本生成模型 | 图像生成模型 | 免费额度 | 特点 |
 |--------|-------------|-------------|----------|------|
-| **Google** | Gemini-1.5-flash | Imagen-4.0 | 有限免费 | 稳定性高，图像质量好 |
-| **ModelScope** | Qwen3-235B | Qwen-Image | 2000次/天 | 完全免费，深度思考模式 |
+| **Google** | Gemini-1.5-flash | Imagen-4.0 | 第一层级可用 | 稳定性高，图像质量好 |
+| **ModelScope** | Qwen3-235B | Qwen-Image | 500次/天 | 完全免费，深度思考模式，不怎么好用 |
 | **DashScope** | 通义千问-Plus | 通义万相/Qwen-Image | 100万tokens起 | 企业级稳定，中文优化 |
 
 ### 选择建议
