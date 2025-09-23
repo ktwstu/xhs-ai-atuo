@@ -11,7 +11,7 @@ import re
 import os
 from datetime import datetime
 from io import BytesIO
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from config import settings
 from services.ai_service import AIService
